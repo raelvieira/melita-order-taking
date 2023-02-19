@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS product(
+    id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+    name VARCHAR(150) NOT NULL,
+    description VARCHAR(150) NOT NULL,
+    CONSTRAINT pk_id_product PRIMARY KEY (id)
+);

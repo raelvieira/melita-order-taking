@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration>
+    <property name="LOG_DIR" value="logs"/>
+
+    <!--    Log console-->
+    <appender class="ch.qos.logback.core.ConsoleAppender" name="STDOUT">
+        <encoder>
+            <pattern>
+                { "timestamp": %d{dd-MM-yyyy HH:mm:ss.SSS}, "message": %msg, "logger_name": %logger{35}, "thread_name": [%thread], "level": %-5level }%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <logger additivity="false" level="INFO" name="br.com.mobicare.mcarejradius">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>
