@@ -31,4 +31,4 @@ In the *root folder* of the project there is a **postman** file with some projec
 The service has **OAuth2** authentication, therefore, before making a new request, make sure that you have authenticated and are passing the Token `bearer` in the request.
 
 ------------
-by Israel Vieira 👋 [Contact me by Linkedin! :fa-linkedin-square: ](https://www.linkedin.com/in/israelvieiraa/)
+by Israel Vieira 👋 [Contact me by Linkedin!](https://www.linkedin.com/in/israelvieiraa/)
