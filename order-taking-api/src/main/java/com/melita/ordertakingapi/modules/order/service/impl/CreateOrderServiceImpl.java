@@ -9,6 +9,7 @@ import com.melita.ordertakingapi.modules.product.model.PackageProduct;
 import com.melita.ordertakingapi.modules.product.service.PackageProductSearch;
 import jakarta.ws.rs.BadRequestException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +20,9 @@ public class CreateOrderServiceImpl implements CreateOrderService {
     private final PackageProductSearch packageProductSearch;
 
     private final RabbitTemplate rabbitTemplate;
+
+    @Value("${rabbitmq.exchange.name}")
+    private String exchangeName;
 
     public CreateOrderServiceImpl(PackageProductSearch packageProductSearch, RabbitTemplate rabbitTemplate) {
         this.packageProductSearch = packageProductSearch;
@@ -46,6 +50,6 @@ public class CreateOrderServiceImpl implements CreateOrderService {
             .findByIdListAndProduct(packageProductIdList, productIdList);
 
         NewOrderProcessed newOrderProcessed = NewOrderProcessed.create(customer, packageProducts);
-        this.rabbitTemplate.convertAndSend("new.order", newOrderProcessed);
+        this.rabbitTemplate.convertAndSend(this.exchangeName, "", newOrderProcessed);
     }
 }
