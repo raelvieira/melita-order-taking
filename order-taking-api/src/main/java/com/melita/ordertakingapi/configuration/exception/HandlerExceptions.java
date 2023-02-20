@@ -1,93 +1,138 @@
 package com.melita.ordertakingapi.configuration.exception;
 
+import com.melita.ordertakingapi.configuration.exception.response.Error;
+import com.melita.ordertakingapi.configuration.exception.response.Response;
+import jakarta.ws.rs.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 @RestControllerAdvice
 public class HandlerExceptions extends ResponseEntityExceptionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(HandlerExceptions.class);
 
-    private static final String MDC_KEY = "StackTrace";
-    private static final String DATA_RESPONSE_TITLE = "Attention";
+    private final MessageSource messageSource;
+
+    public HandlerExceptions(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatusCode status,
                                                                   WebRequest request) {
-        DataResponse dataResponse = new DataResponse(
-                DATA_RESPONSE_TITLE,
-                "The arguments sent are not valid!"
+        LOG.error("Error {}: {}", ex.getClass(), ex.getMessage());
+
+        final Response<Error> resp = new Response<>();
+        List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
+
+        fieldErrors
+            .forEach(fieldError -> resp.add(new Error(fieldError.getDefaultMessage(), ex.getLocalizedMessage())));
+
+        return super.handleExceptionInternal(
+            ex,
+            resp,
+            headers,
+            HttpStatus.BAD_REQUEST,
+            request
         );
-
-        MDC.clear();
-        MDC.put(MDC_KEY, Arrays.toString(ex.getStackTrace()));
-        LOG.error("MethodArgumentNotValidException: {}", ex.getMessage());
-        MDC.clear();
-
-        return super.handleExceptionInternal(ex, dataResponse, headers, HttpStatus.BAD_REQUEST, request);
     }
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
                                                                   HttpHeaders headers, HttpStatusCode status,
                                                                   WebRequest request) {
-        DataResponse dataResponse = new DataResponse(
-                DATA_RESPONSE_TITLE,
-                "Parameters are invalid!"
+
+        LOG.error("Error {}: {}", ex.getClass(), ex.getMessage());
+
+        final Response<Error> resp = new Response<>();
+
+        final String message = messageSource.getMessage(
+            "parameter.invalid",
+            null,
+            new Locale("en", "UK")
         );
 
-        MDC.clear();
-        MDC.put(MDC_KEY, Arrays.toString(ex.getStackTrace()));
-        LOG.error("HttpMessageNotReadableException: {}", ex.getMessage());
-        MDC.clear();
+        resp.add(new Error(message, ex.getLocalizedMessage()));
 
-        return super.handleExceptionInternal(ex, dataResponse, headers, HttpStatus.BAD_REQUEST, request);
+        return super.handleExceptionInternal(
+            ex,
+            resp,
+            headers,
+            HttpStatus.BAD_REQUEST,
+            request
+        );
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public final ResponseEntity<Error> handleBadRequestException(
+        BadRequestException ex,
+        WebRequest request
+    ) {
+        LOG.error("Error {}: {}", ex.getClass(), ex.getMessage());
+
+        Error errorResponse = new Error(
+            ex.getMessage(),
+            request.getDescription(false)
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public final ResponseEntity<Error> handleNotFoundException(
+        NotFoundException ex,
+        WebRequest request
+    ) {
+        LOG.error("Error {}: {}", ex.getClass(), ex.getMessage());
+
+        Error errorResponse = new Error(
+            ex.getMessage(),
+            request.getDescription(false)
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<DataResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        DataResponse dataResponse = new DataResponse(
-                DATA_RESPONSE_TITLE,
-                "The arguments are not appropriate for the request!"
+    public ResponseEntity<Error> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        LOG.error("Error {}: {}", ex.getClass(), ex.getMessage());
+
+        Error errorResponse = new Error(
+            ex.getMessage(),
+            request.getDescription(false)
         );
 
-        MDC.clear();
-        MDC.put(MDC_KEY, Arrays.toString(ex.getStackTrace()));
-        LOG.error("IllegalArgumentException: {}", ex.getMessage());
-        MDC.clear();
-
         return ResponseEntity
-                .badRequest()
-                .body(dataResponse);
+            .badRequest()
+            .body(errorResponse);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<DataResponse> handleAllException(Exception ex) {
-        DataResponse dataResponse = new DataResponse(
-                DATA_RESPONSE_TITLE,
-                "There was an internal error with your request!"
+    public ResponseEntity<Error> handleAllException(Exception ex, WebRequest request) {
+        LOG.error("Error {}: {}", ex.getClass(), ex.getMessage());
+
+        Error errorResponse = new Error(
+            ex.getMessage(),
+            request.getDescription(false)
         );
 
-        MDC.clear();
-        MDC.put(MDC_KEY, Arrays.toString(ex.getStackTrace()));
-        LOG.error("Exception class is {} message: {}", ex.getClass(), ex.getMessage());
-        MDC.clear();
-
         return ResponseEntity
-                .internalServerError()
-                .body(dataResponse);
+            .internalServerError()
+            .body(errorResponse);
     }
 }
