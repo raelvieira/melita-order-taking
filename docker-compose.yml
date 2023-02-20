@@ -1,0 +1,132 @@
+version: '3.4'
+services:
+  db:
+    container_name: mysql_container
+    image: mysql:8
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: change-me
+    ports:
+      - "3306:3306"
+    networks:
+      - israel-network
+
+  rabbitmq:
+    container_name: rabbitmq_container
+    image: rabbitmq:3.10-management
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - israel-network
+
+  eureka-server:
+    container_name: eureka
+    restart: always
+    build: ./eureka-server
+    working_dir: /eureka-server
+    environment:
+      SPRING_BOOT_ENVIRONMENT: Production
+    volumes:
+      - ./eureka-server:/eureka-server
+      - ~/.m2:/root/.m2
+    ports:
+      - "8081:8081"
+    command: mvn clean spring-boot:run
+    links:
+      - db
+    depends_on:
+      - db
+    networks:
+      - israel-network
+
+  auth-server:
+    container_name: auth-server
+    restart: always
+    build: ./auth-server
+    working_dir: /auth-server
+    environment:
+      SPRING_BOOT_ENVIRONMENT: Production
+    volumes:
+      - ./auth-server:/auth-server
+      - ~/.m2:/root/.m2
+    ports:
+      - "8089:8089"
+    command: mvn clean spring-boot:run
+    networks:
+      - israel-network
+
+  api-gateway:
+    container_name: api-gateway
+    restart: always
+    build: ./api-gateway
+    working_dir: /api-gateway
+    environment:
+      SPRING_BOOT_ENVIRONMENT: Production
+    volumes:
+      - ./api-gateway:/api-gateway
+      - ~/.m2:/root/.m2
+    ports:
+      - "9090:9090"
+    command: mvn clean spring-boot:run
+    links:
+      - eureka-server
+      - auth-server
+    depends_on:
+      - eureka-server
+      - auth-server
+    networks:
+      - israel-network
+
+  order-taking-api:
+    container_name: order-taking-api
+    restart: always
+    build: ./order-taking-api
+    working_dir: /order-taking-api
+    environment:
+      SPRING_BOOT_ENVIRONMENT: Production
+    volumes:
+      - ./order-taking-api:/order-taking-api
+      - ~/.m2:/root/.m2
+    ports:
+      - "8080:8080"
+    command: mvn clean spring-boot:run
+    links:
+      - db
+      - rabbitmq
+      - eureka-server
+    depends_on:
+      - db
+      - rabbitmq
+      - eureka-server
+    networks:
+      - israel-network
+
+  ordering-fulfilment:
+    container_name: ordering-fulfilment-api
+    restart: always
+    build: ./ordering-fulfilment
+    working_dir: /ordering-fulfilment
+    environment:
+      SPRING_BOOT_ENVIRONMENT: Production
+    volumes:
+      - ./ordering-fulfilment:/ordering-fulfilment
+      - ~/.m2:/root/.m2
+    ports:
+      - "8083:8083"
+    command: mvn clean spring-boot:run
+    links:
+      - db
+      - rabbitmq
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - israel-network
+
+      
+networks:
+    israel-network:
+        driver: bridge
