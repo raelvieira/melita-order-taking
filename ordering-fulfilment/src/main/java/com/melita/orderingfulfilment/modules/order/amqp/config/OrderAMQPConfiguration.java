@@ -21,8 +21,14 @@ public class OrderAMQPConfiguration {
     @Value("${rabbitmq.queue.name}")
     private String queueName;
 
+    @Value("${rabbitmq.dlq.name}")
+    private String dlqName;
+
     @Value("${rabbitmq.exchange.name}")
     private String exchangeName;
+
+    @Value("${rabbitmq.dlx.name}")
+    private String deadLetterExchangeName;
 
     @Bean
     public Jackson2JsonMessageConverter messageConverter() {
@@ -38,7 +44,15 @@ public class OrderAMQPConfiguration {
 
     @Bean
     public Queue queueNewOrderingFulfilment() {
-        return QueueBuilder.durable(this.queueName).build();
+        return QueueBuilder.durable(this.queueName)
+            .deadLetterExchange(this.deadLetterExchangeName)
+            .build();
+    }
+
+
+    @Bean
+    public Queue queueDlqNewOrderingFulfilment() {
+        return QueueBuilder.durable(this.dlqName).build();
     }
 
     @Bean
@@ -47,9 +61,20 @@ public class OrderAMQPConfiguration {
     }
 
     @Bean
-    public Binding bindNewOrder(FanoutExchange fanoutExchange) {
+    public FanoutExchange deadLetterExchange() {
+        return ExchangeBuilder.fanoutExchange(this.deadLetterExchangeName).build();
+    }
+
+    @Bean
+    public Binding bindNewOrder() {
         return BindingBuilder.bind(queueNewOrderingFulfilment())
-            .to(fanoutExchange);
+            .to(fanoutExchange());
+    }
+
+    @Bean
+    public Binding bindDlxNewOrder() {
+        return BindingBuilder.bind(queueDlqNewOrderingFulfilment())
+            .to(deadLetterExchange());
     }
 
     @Bean
