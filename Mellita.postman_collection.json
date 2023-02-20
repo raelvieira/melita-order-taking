@@ -1,0 +1,192 @@
+{
+	"info": {
+		"_postman_id": "720605a2-4f1f-48ea-9e54-e3e72a2a2414",
+		"name": "Mellita",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25932445"
+	},
+	"item": [
+		{
+			"name": "ACESS_TOKEN",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "web123",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "melita-web",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "israel",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "123",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "password",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8089/oauth/token",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8089",
+					"path": [
+						"oauth",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CHECK_TOKEN",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "web123",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "melita-web",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "token",
+							"value": "f6b80ec6-a8db-44cf-a719-40b0a68dadf6",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8089/oauth/check_token",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8089",
+					"path": [
+						"oauth",
+						"check_token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NEW_ORDER",
+			"request": {
+				"auth": {
+					"type": "oauth2",
+					"oauth2": [
+						{
+							"key": "password",
+							"value": "123",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "israel",
+							"type": "string"
+						},
+						{
+							"key": "clientSecret",
+							"value": "web123",
+							"type": "string"
+						},
+						{
+							"key": "clientId",
+							"value": "melita-web",
+							"type": "string"
+						},
+						{
+							"key": "accessTokenUrl",
+							"value": "http://localhost:8089/oauth/token",
+							"type": "string"
+						},
+						{
+							"key": "grant_type",
+							"value": "password_credentials",
+							"type": "string"
+						},
+						{
+							"key": "tokenName",
+							"value": "AuthToken",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "bearer e17ebe31-9b10-41f9-9075-46ee141c5dcd",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"customer\": {\n        \"userId\": 1,\n        \"userName\": \"Israel Vieira\",\n        \"email\": \"example@email.com\",\n        \"installationAddress\": \"Test, test 103 - Sliema\",\n        \"installationDate\": \"2023-02-22\",\n        \"startTime\": \"11:36:59\",\n        \"endTime\": \"11:46:59\"\n    },\n    \"products\": [\n        {\n            \"productId\": 1,\n            \"packageId\": 2\n        },\n        {\n            \"productId\": 1,\n            \"packageId\": 1\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9090/api-gateway/order-taking/order",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9090",
+					"path": [
+						"api-gateway",
+						"order-taking",
+						"order"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
