@@ -18,7 +18,7 @@ public class NewOrderProcessedListener {
         this.processedService = processedService;
     }
 
-    @RabbitListener(queues = "new.order")
+    @RabbitListener(queues = "${rabbitmq.queue.name}")
     public void processNewOrderProcessed(NewOrderProcessedDTO newOrderProcessed) throws MessagingException {
         LOG.info("Message received {}", newOrderProcessed);
         this.processedService.execute(newOrderProcessed);
